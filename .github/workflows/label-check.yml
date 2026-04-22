@@ -7,9 +7,18 @@ jobs:
   enforce-label:
     runs-on: ubuntu-latest
     steps:
-      - name: Check for labels
+      - name: Check for 'DO NOT MERGE' label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          if [ "${{ github.event.pull_request.labels[0].name }}" == "" ]; then
-            echo "No labels found! Please add a label to this PR."
+          # Fetch all labels as a simple string
+          LABELS=$(gh pr view $PR_NUMBER --json labels -q '.labels[].name')
+
+          # Check if "DO NOT MERGE" exists in the string (case-insensitive)
+          if echo "$LABELS" | grep -iq "DO NOT MERGE"; then
+            echo "Error: The 'DO NOT MERGE' label is active. Blocking merge."
             exit 1
-          fi    
+          fi
+
+          echo "Status: PR is clear to merge."
