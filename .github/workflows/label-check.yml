@@ -7,15 +7,18 @@ jobs:
   enforce-label:
     runs-on: ubuntu-latest
     steps:
+      # --- ADD THIS STEP ---
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Check for 'DO NOT MERGE' label
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          # Fetch all labels as a simple string
+          # Now that we've checked out, 'gh' knows which repo this is
           LABELS=$(gh pr view $PR_NUMBER --json labels -q '.labels[].name')
 
-          # Check if "DO NOT MERGE" exists in the string (case-insensitive)
           if echo "$LABELS" | grep -iq "DO NOT MERGE"; then
             echo "Error: The 'DO NOT MERGE' label is active. Blocking merge."
             exit 1
